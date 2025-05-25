@@ -129,22 +129,21 @@ class SignatureManager:
       """
       Batch verifies multiple signed messages against their corresponding public keys.
       :param signed_messages: A list of signed message dictionaries.
-      :param public_keys: A list of RSA public keys in PEM format corresponding to the signed messages.
+      :param public_keys: A dict of RSA public keys in PEM format with key_id as key.
       :return: A list of boolean values indicating the validity of each signature.
       """
       results = []
-      
-      for i, signed_message in enumerate(signed_messages):
+
+      for signed_message in signed_messages:
          try:
             key_id = signed_message.get('key_id')
             if key_id and key_id in public_keys:
-               public_key = public_keys[key_id]
-               results[i] = self.verify_message_signature(signed_message, public_key)
-            
+                  public_key = public_keys[key_id]
+                  valid = self.verify_message_signature(signed_message, public_key)
+                  results.append(valid)
             else:
-               results[i] = False
-         
-         except Exception as e:
-            results[i] = False
+                  results.append(False)
+         except Exception:
+            results.append(False)
       
       return results

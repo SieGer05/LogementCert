@@ -1,117 +1,94 @@
 import os
 import json
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
+import base64
+import time
+from hashlib import sha256
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.exceptions import InvalidSignature
 
 class KeyManager:
-   """Manages the generation, storage, and retrieval of RSA keys for digital signatures."""
+   """Manage RSA key generation, saving, and loading."""
 
    def __init__(self, keys_directory='keys'):
-      """
-      Initializes the KeyManager with a specified directory for storing keys.
-      :param keys_directory: Directory where keys will be stored.
-      """
+      # Create directory to store keys if it doesn't exist
       self.keys_directory = keys_directory
       os.makedirs(keys_directory, exist_ok=True)
-   
+
    def generate_key_pair(self, key_size=2048):
-      """
-      Generates a new RSA key pair.
-      :param key_size: Size of the RSA key to generate (default is 2048 bits).
-      :return: A tuple containing the private and public keys.
-      """
+      # Generate RSA private/public key pair
       private_key = rsa.generate_private_key(
          public_exponent=65537,
          key_size=key_size
       )
       public_key = private_key.public_key()
-      
+
+      # Serialize private key to PEM format (unencrypted)
       private_pem = private_key.private_bytes(
          encoding=serialization.Encoding.PEM,
          format=serialization.PrivateFormat.PKCS8,
          encryption_algorithm=serialization.NoEncryption()
       ).decode('utf-8')
 
+      # Serialize public key to PEM format
       public_pem = public_key.public_bytes(
          encoding=serialization.Encoding.PEM,
          format=serialization.PublicFormat.SubjectPublicKeyInfo
       ).decode('utf-8')
 
-      return private_pem, public_pem
-   
-   def save_key_pair(self, private_key, public_key, identifier):
-      """
-      Saves the RSA key pair to files.
-      :param private_key: The private key in PEM format.
-      :param public_key: The public key in PEM format.
-      :param identifier: Unique identifier for the key pair (e.g., username).
-      """
-      private_path = os.path.join(self.keys_directory, f'{identifier}_private.pem')
-      public_path = os.path.join(self.keys_directory, f'{identifier}_public.pem')
+      # Calculate key fingerprint to serve as key_id
+      key_id = self.get_key_fingerprint(public_pem)
 
-      with open(private_path, 'w') as private_file:
-         private_file.write(private_key)
-      
-      with open(public_path, 'w') as public_file:
-         public_file.write(public_key)
+      return private_pem, public_pem, key_id
 
+   def save_key_pair(self, private_key_pem, public_key_pem, key_id=None):
+      # Save private and public keys as PEM files in keys_directory
+      if key_id is None:
+         key_id = self.get_key_fingerprint(public_key_pem)
+
+      private_path = os.path.join(self.keys_directory, f'{key_id}_private.pem')
+      public_path = os.path.join(self.keys_directory, f'{key_id}_public.pem')
+
+      with open(private_path, 'w') as f:
+         f.write(private_key_pem)
+
+      with open(public_path, 'w') as f:
+         f.write(public_key_pem)
+
+      # Set private key file permissions to owner-read/write only
       os.chmod(private_path, 0o600)
 
-      return private_path, public_path
-   
+      return key_id, private_path, public_path
+
    def load_private_key(self, file_path):
-      """
-      Loads a private key from a file.
-      :param file_path: Path to the private key file.
-      :return: The private key PEM format.
-      """
-      with open(file_path, 'r') as key_file:
-         return key_file.read()
-      
+      # Load private key PEM from file
+      with open(file_path, 'r') as f:
+         return f.read()
+
    def load_public_key(self, file_path):
-      """
-      Loads a public key from a file.
-      :param file_path: Path to the public key file.
-      :return: The public key PEM format.
-      """
-      with open(file_path, 'r') as key_file:
-         return key_file.read()
-   
-   def export_public_keys(self, output_file='public_keys.json'):
-      """
-      Exports all public keys in the keys directory to a JSON file.
-      :param output_file: The name of the output JSON file.
-      """
-      public_keys = {}
+      # Load public key PEM from file
+      with open(file_path, 'r') as f:
+         return f.read()
 
-      for filename in os.listdir(self.keys_directory):
-         if filename.endswith('_public.pem'):
-            identifier = filename.replace('_public.pem', '')
-            filepath = os.path.join(self.keys_directory, filename)
-            public_keys[identifier] = self.load_public_key(filepath)
-
-      output_path = os.path.join(self.keys_directory, output_file)
-      with open(output_path, 'w') as json_file:
-         json.dump(public_keys, json_file, indent=2)
-      
-      return output_path
-   
    def get_key_fingerprint(self, public_key_pem):
-      """
-      Computes a fingerprint for a public key.
-      :param public_key: The public key in PEM format.
-      :return: A fingerprint of the public key.
-      """
-      from hashlib import sha256
-      return sha256(public_key_pem.encode()).hexdigest()[:16]
-   
+      """Calculate a SHA256 fingerprint truncated to 16 hex characters."""
+      return sha256(public_key_pem.encode('utf-8')).hexdigest()[:16]
+
    def load_all_public_keys(self):
-      """Charge toutes les clés publiques et renvoie un dict {key_id: clé_publique}."""
+      """Load all public keys from keys_directory into a dict {key_id: public_key_pem}."""
       public_keys = {}
       for filename in os.listdir(self.keys_directory):
          if filename.endswith('_public.pem'):
-            filepath = os.path.join(self.keys_directory, filename)
-            pub_key = self.load_public_key(filepath)
-            kid = self.get_key_fingerprint(pub_key)
-            public_keys[kid] = pub_key
+               path = os.path.join(self.keys_directory, filename)
+               pub_key = self.load_public_key(path)
+               kid = self.get_key_fingerprint(pub_key)
+               public_keys[kid] = pub_key
       return public_keys
+
+   def export_public_keys(self, output_file='public_keys.json'):
+      # Export all loaded public keys as a JSON file mapping key_id to public_key_pem
+      public_keys = self.load_all_public_keys()
+      output_path = os.path.join(self.keys_directory, output_file)
+      with open(output_path, 'w') as f:
+         json.dump(public_keys, f, indent=2)
+      return output_path

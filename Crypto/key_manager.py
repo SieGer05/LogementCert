@@ -104,3 +104,14 @@ class KeyManager:
       """
       from hashlib import sha256
       return sha256(public_key_pem.encode()).hexdigest()[:16]
+   
+   def load_all_public_keys(self):
+      """Charge toutes les clés publiques et renvoie un dict {key_id: clé_publique}."""
+      public_keys = {}
+      for filename in os.listdir(self.keys_directory):
+         if filename.endswith('_public.pem'):
+            filepath = os.path.join(self.keys_directory, filename)
+            pub_key = self.load_public_key(filepath)
+            kid = self.get_key_fingerprint(pub_key)
+            public_keys[kid] = pub_key
+      return public_keys

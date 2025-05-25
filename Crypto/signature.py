@@ -82,14 +82,7 @@ class SignatureManager:
       except Exception:
          return False
    
-   def create_message_signature(self, message, private_key_pem, metadata=None):
-      """
-      Creates a signed message with optional metadata.
-      :param message: The message to be signed.
-      :param private_key_pem: The RSA private key in PEM format.
-      :param metadata: Optional metadata to include in the signature.
-      :return: A dictionary containing the signed message and metadata.
-      """
+   def create_message_signature(self, message, private_key_pem, key_id=None, metadata=None):
       import time
 
       full_data = {
@@ -102,7 +95,8 @@ class SignatureManager:
 
       return {
          'data': full_data,
-         'signature': signature
+         'signature': signature,
+         'key_id': key_id  
       }
 
    def verify_message_signature(self, signed_message, public_key_pem):

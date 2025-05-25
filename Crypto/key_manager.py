@@ -2,7 +2,6 @@ import os
 import json
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
-from cryptography.exceptions import InvalidSignature
 
 class KeyManager:
    """Manages the generation, storage, and retrieval of RSA keys for digital signatures."""

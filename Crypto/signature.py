@@ -6,6 +6,21 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.exceptions import InvalidSignature
 
 class SignatureManager:
+   def get_public_key_pem_from_private(self, private_key_pem):
+    """Extract public key PEM from private key PEM."""
+    try:
+        private_key = serialization.load_pem_private_key(
+            private_key_pem.encode('utf-8'),
+            password=None
+        )
+        public_key = private_key.public_key()
+        
+        return public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode('utf-8')
+    except Exception as e:
+         raise ValueError(f"Error extracting public key: {e}")
    """Manage digital signatures using RSA keys."""
 
    def sign_data(self, data, private_key_pem):
@@ -18,18 +33,18 @@ class SignatureManager:
 
          # Convert data to JSON bytes if dict, else encode string bytes
          if isinstance(data, dict):
-               data_bytes = json.dumps(data, sort_keys=True).encode('utf-8')
+            data_bytes = json.dumps(data, sort_keys=True).encode('utf-8')
          else:
-               data_bytes = str(data).encode('utf-8')
+            data_bytes = str(data).encode('utf-8')
 
          # Sign data bytes with PSS padding and SHA256 hash
          signature = private_key.sign(
-               data_bytes,
-               padding.PSS(
-                  mgf=padding.MGF1(hashes.SHA256()),
-                  salt_length=padding.PSS.MAX_LENGTH
-               ),
-               hashes.SHA256()
+            data_bytes,
+            padding.PSS(
+               mgf=padding.MGF1(hashes.SHA256()),
+               salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
          )
 
          # Encode signature in base64 string
@@ -49,19 +64,19 @@ class SignatureManager:
 
          # Convert data to bytes (JSON if dict, else string)
          if isinstance(data, dict):
-               data_bytes = json.dumps(data, sort_keys=True).encode('utf-8')
+            data_bytes = json.dumps(data, sort_keys=True).encode('utf-8')
          else:
-               data_bytes = str(data).encode('utf-8')
+            data_bytes = str(data).encode('utf-8')
 
          # Verify signature with PSS padding and SHA256 hash
          public_key.verify(
-               signature,
-               data_bytes,
-               padding.PSS(
-                  mgf=padding.MGF1(hashes.SHA256()),
-                  salt_length=padding.PSS.MAX_LENGTH
-               ),
-               hashes.SHA256()
+            signature,
+            data_bytes,
+            padding.PSS(
+               mgf=padding.MGF1(hashes.SHA256()),
+               salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
          )
          return True
       except InvalidSignature:

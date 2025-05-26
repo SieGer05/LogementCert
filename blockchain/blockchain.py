@@ -25,7 +25,7 @@ class LogementBlockchain:
       if self.consensus_type == 'poa':
          self.consensus = ProofOfAuthority()
       else:
-         self.consensus = None  # Pure PoW mode
+         self.consensus = None 
 
       self._create_genesis_block()
 
@@ -57,18 +57,15 @@ class LogementBlockchain:
          print(f"Previous hash mismatch: expected {self.last_block.hash}, got {block.previous_hash}")
          return False
 
-      # For PoA blocks with signatures
       if self.consensus_type == 'poa' and block.signature:
          try:
-               self.consensus.validate_block(block)
-               # Don't overwrite the hash for PoA blocks - it's already set during signing
-               self.chain.append(block)
-               return True
+            self.consensus.validate_block(block)
+            self.chain.append(block)
+            return True
          except (ValueError, PermissionError) as e:
-               print(f"PoA validation failed: {e}")
-               return False
+            print(f"PoA validation failed: {e}")
+            return False
       
-      # For PoW blocks
       if not self._is_valid_proof(block, proof):
          print(f"Invalid proof for block: {proof}")
          return False
@@ -86,8 +83,7 @@ class LogementBlockchain:
       :return: True if valid, False otherwise
       """
       expected_hash = block.compute_hash()
-      return (block_hash.startswith('0' * self.difficulty) and 
-               block_hash == expected_hash)
+      return (block_hash.startswith('0' * self.difficulty) and block_hash == expected_hash)
 
    def proof_of_work(self, block):
       """
@@ -110,7 +106,6 @@ class LogementBlockchain:
       :param transaction: dict representing the transaction
       :return: Index of the transaction in the unconfirmed list
       """
-      # Add timestamp if not present
       if 'timestamp' not in transaction:
          transaction['timestamp'] = time.time()
          
@@ -134,12 +129,11 @@ class LogementBlockchain:
                return None
          try:
                signed_block = self.consensus.sign_block(new_block, private_key_pem)
-               added = self.add_block(signed_block, signed_block.hash)  # Pass the hash as proof
+               added = self.add_block(signed_block, signed_block.hash)  
          except (ValueError, PermissionError) as e:
                print(f"PoA signing failed: {e}")
                return None
       else:
-         # PoW implementation remains the same
          proof = self.proof_of_work(new_block)
          added = self.add_block(new_block, proof)
 
@@ -155,15 +149,15 @@ class LogementBlockchain:
       :return: List of dicts with validated logements and block metadata
       """
       validated = []
-      for block in self.chain[1:]:  # Skip genesis block
+      for block in self.chain[1:]:  
          for tx in block.transactions:
-               if tx.get('status') == 'validated':
-                  validated.append({
-                     'transaction': tx,
-                     'block_index': block.index,
-                     'block_timestamp': block.timestamp,
-                     'block_hash': block.hash
-                  })
+            if tx.get('status') == 'validated':
+               validated.append({
+                  'transaction': tx,
+                  'block_index': block.index,
+                  'block_timestamp': block.timestamp,
+                  'block_hash': block.hash
+               })
       return validated
 
    def get_transactions_by_address(self, address):
@@ -174,14 +168,14 @@ class LogementBlockchain:
       :return: List of transactions
       """
       transactions = []
-      for block in self.chain[1:]:  # Skip genesis block
+      for block in self.chain[1:]: 
          for tx in block.transactions:
-               if tx.get('from') == address or tx.get('to') == address:
-                  transactions.append({
-                     'transaction': tx,
-                     'block_index': block.index,
-                     'block_timestamp': block.timestamp,
-                     'block_hash': block.hash
+            if tx.get('from') == address or tx.get('to') == address:
+               transactions.append({
+                  'transaction': tx,
+                  'block_index': block.index,
+                  'block_timestamp': block.timestamp,
+                  'block_hash': block.hash
                   })
       return transactions
 
@@ -205,7 +199,6 @@ class LogementBlockchain:
          'validators_count': len(self.consensus.get_validators()) if self.consensus_type == 'poa' else 0
       }
 
-   # Validator management methods (only for PoA)
    def add_validator(self, public_key_pem):
       """Add a new authorized validator."""
       if self.consensus_type != 'poa':

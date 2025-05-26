@@ -48,18 +48,14 @@ class ProofOfAuthority:
       if not private_key_pem:
          raise ValueError("Private key is required for signing")
                
-      # Get the public key from private key
       public_key_pem = self.signature_manager.get_public_key_pem_from_private(private_key_pem)
       
-      # Check if validator is authorized
       if not self.is_authorized_validator(public_key_pem):
          raise PermissionError("Validator is not authorized")
       
-      # Set validator first, then compute hash (important for consistency)
       block.validator = public_key_pem
       block.hash = block.compute_hash()
       
-      # Sign the hash
       signature = self.signature_manager.sign_data(block.hash, private_key_pem)
       block.signature = signature
       
@@ -79,8 +75,6 @@ class ProofOfAuthority:
       if not self.is_authorized_validator(block.validator):
          raise PermissionError("Validator is not authorized")
       
-      # For PoA blocks, we trust the hash that was signed
-      # We only need to verify the signature matches the stored hash
       if not self.signature_manager.verify_signature(block.hash, block.signature, block.validator):
          raise ValueError("Invalid block signature")
       

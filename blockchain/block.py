@@ -24,8 +24,8 @@ class Block:
       self.previous_hash = previous_hash
       self.nonce = nonce
       self.hash = None
-      self.validator = validator  # Public key PEM string
-      self.signature = signature  # Base64-encoded signature
+      self.validator = validator 
+      self.signature = signature  
 
    def compute_hash(self):
       """

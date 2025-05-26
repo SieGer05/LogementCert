@@ -7,21 +7,20 @@ from cryptography.exceptions import InvalidSignature
 
 class SignatureManager:
    def get_public_key_pem_from_private(self, private_key_pem):
-    """Extract public key PEM from private key PEM."""
-    try:
-        private_key = serialization.load_pem_private_key(
+      """Extract public key PEM from private key PEM."""
+      try:
+         private_key = serialization.load_pem_private_key(
             private_key_pem.encode('utf-8'),
             password=None
-        )
-        public_key = private_key.public_key()
-        
-        return public_key.public_bytes(
+         )
+         public_key = private_key.public_key()
+         
+         return public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
-        ).decode('utf-8')
-    except Exception as e:
-         raise ValueError(f"Error extracting public key: {e}")
-   """Manage digital signatures using RSA keys."""
+         ).decode('utf-8')
+      except Exception as e:
+            raise ValueError(f"Error extracting public key: {e}")
 
    def sign_data(self, data, private_key_pem):
       try:

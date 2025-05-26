@@ -1,5 +1,5 @@
 import json
-from Crypto import SignatureManager
+from crypto import SignatureManager
 
 class ProofOfAuthority:
    """

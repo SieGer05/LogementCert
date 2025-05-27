@@ -1,11 +1,8 @@
 import os
 import json
-import base64
-import time
 from hashlib import sha256
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
 
 class KeyManager:
    """Manage RSA key generation, saving, and loading."""

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owner Dashboard - LogementCert</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #1f2937;
+      padding: 2rem;
+    }
+    section {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="color:white;">Dashboard Propriétaire</h2>
+     <button onclick="logout()" style="
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+">🔓 Déconnexion</button>
+<script>
+  function logout() {
+    alert("Déconnexion réussie.");
+    window.location.href = "Login Interfaces.html"; // redirige vers la page de connexion
+  }
+</script>
+  <section>
+    <h3>Mes Logements</h3>
+    <table>
+      <thead><tr><th>Titre</th><th>Statut</th><th>QR Code</th></tr></thead>
+      <tbody id="ownerProperties">
+        <!-- Données dynamiques -->
+      </tbody>
+    </table>
+  </section>
+  <section>
+    <h3>Ajouter un nouveau logement</h3>
+    <form id="propertyForm">
+  <input type="text" name="title" placeholder="Titre du logement" required>
+  <textarea name="description" placeholder="Description" required></textarea>
+  <input type="number" name="price" placeholder="Prix par nuit (DH)" min="0" step="0.01" required>
+  <input type="file" name="photos" multiple>
+  <input type="file" name="documents" required>
+  <button type="submit">Soumettre</button>
+</form>
+
+  </section>
+  <script>
+    document.getElementById('propertyForm').addEventListener('submit', e => {
+      e.preventDefault();
+      alert('Logement soumis pour validation.');
+    });
+  </script>
+</body>
+</html>

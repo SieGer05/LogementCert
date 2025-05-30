@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogementCert - Plateforme de Location</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .auth-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .login-btn {
+            background: #667eea;
+            color: white;
+        }
+        
+        .register-btn {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .logout-btn {
+            background: #dc2626;
+            color: white;
+        }
+        
+        .auth-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+        
+        .page {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .page-header h1 {
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-header p {
+            color: #6b7280;
+        }
+        
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .listing-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 2px solid #e1e5e9;
+            transition: all 0.3s ease;
+        }
+        
+        .listing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .listing-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 3rem;
+        }
+        
+        .listing-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .listing-price {
+            font-size: 1.1rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .listing-status {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .status-available {
+            color: #059669;
+        }
+        
+        .status-booked {
+            color: #dc2626;
+        }
+        
+        .rent-btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .rent-btn.available {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .rent-btn.booked {
+            background: #9ca3af;
+            color: white;
+            cursor: not-allowed;
+        }
+        
+        .rent-btn:hover:not(.booked) {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .date-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .back-btn {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        
+        .back-btn:hover {
+            background: #4b5563;
+        }
+        
+        .user-info {
+            color: #374151;
+            font-weight: 600;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .success-message {
+            background: #d1fae5;
+            color: #059669;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        /* Styles pour la recherche */
+        .search-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 2px solid #e1e5e9;
+        }
+        
+        .search-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            gap: 1rem;
+            align-items: end;
+            margin-bottom: 2rem;
+        }
+        
+        .search-field {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .search-field label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .search-field input,
+        .search-field select {
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .search-field input:focus,
+        .search-field select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        .search-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .filters-container {
+            border-top: 1px solid #e1e5e9;
+            padding-top: 1.5rem;
+        }
+        
+        .filters-container h3 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        
+        .search-results {
+            margin-bottom: 1.5rem;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .results-header h2 {
+            color: #1f2937;
+            margin: 0;
+        }
+        
+        .sort-options {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .sort-options label {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .sort-options select {
+            padding: 0.5rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+        }
+        
+        #priceDisplay {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .date-fields {
+                grid-template-columns: 1fr;
+            }
+            
+            .listings-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            
+            .filters {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">🏠 LogementCert</div>
+            <div class="auth-section">
+                <div id="authButtons" class="auth-buttons">
+                    <button class="auth-btn login-btn" onclick="showLogin()">Connexion</button>
+                    <button class="auth-btn register-btn" onclick="showRegister()">S'inscrire</button>
+                </div>
+                <div id="userSection" class="user-info" style="display: none;">
+                    <span id="welcomeUser"></span>
+                    <button class="auth-btn logout-btn" onclick="logout()">Déconnexion</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page d'accueil avec les logements -->
+        <div id="homePage" class="page active">
+            <div class="page-header">
+                <h1>Logements Disponibles</h1>
+                <p>Découvrez nos magnifiques propriétés</p>
+            </div>
+            
+            <!-- Section de recherche -->
+            <div class="search-section">
+                <div class="search-container">
+                    <div class="search-field">
+                        <label for="searchLocation">🏠 Destination</label>
+                        <input type="text" id="searchLocation" placeholder="Où voulez-vous aller?">
+                    </div>
+                    <div class="search-field">
+                        <label for="searchCheckin">📅 Arrivée</label>
+                        <input type="date" id="searchCheckin">
+                    </div>
+                    <div class="search-field">
+                        <label for="searchCheckout">📅 Départ</label>
+                        <input type="date" id="searchCheckout">
+                    </div>
+                    <div class="search-field">
+                        <label for="searchGuests">👥 Voyageurs</label>
+                        <select id="searchGuests">
+                            <option value="1">1 voyageur</option>
+                            <option value="2">2 voyageurs</option>
+                            <option value="3">3 voyageurs</option>
+                            <option value="4">4 voyageurs</option>
+                            <option value="5">5+ voyageurs</option>
+                        </select>
+                    </div>
+                    <button class="search-btn" onclick="performSearch()">
+                        🔍 Rechercher
+                    </button>
+                </div>
+                
+                <!-- Filtres -->
+                <div class="filters-container">
+                    <h3>Filtres</h3>
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label for="priceRange">Prix maximum par nuit</label>
+                            <input type="range" id="priceRange" min="0" max="2000" value="2000" oninput="updatePriceDisplay()">
+                            <span id="priceDisplay">2000DH</span>
+                        </div>
+                        <div class="filter-group">
+                            <label>Type de logement</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" value="appartement" checked> Appartement</label>
+                                <label><input type="checkbox" value="villa" checked> Villa</label>
+                                <label><input type="checkbox" value="maison" checked> Maison</label>
+                                <label><input type="checkbox" value="loft" checked> Loft</label>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label><input type="checkbox" id="availableOnly"> Disponibles uniquement</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Résultats de recherche -->
+            <div class="search-results">
+                <div class="results-header">
+                    <h2 id="resultsCount">Tous les logements</h2>
+                    <div class="sort-options">
+                        <label for="sortBy">Trier par:</label>
+                        <select id="sortBy" onchange="sortListings()">
+                            <option value="default">Par défaut</option>
+                            <option value="price-low">Prix croissant</option>
+                            <option value="price-high">Prix décroissant</option>
+                            <option value="name">Nom A-Z</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="listings-grid" id="listingsGrid">
+                <!-- Les logements seront générés dynamiquement -->
+            </div>
+        </div>
+
+        <!-- Page de connexion -->
+        <div id="loginPage" class="page">
+            <button class="back-btn" onclick="showHome()">← Retour</button>
+            <div class="page-header">
+                <h1>Connexion</h1>
+                <p>Connectez-vous à votre compte</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">Mot de passe</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">Se connecter</button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 1rem;">
+                <p>Pas encore de compte? <a href="#" onclick="showRegister()" style="color: #667eea;">S'inscrire</a></p>
+            </div>
+        </div>
+
+        <!-- Page d'inscription -->
+        <div id="registerPage" class="page">
+            <button class="back-btn" onclick="showHome()">← Retour</button>
+            <div class="page-header">
+                <h1>Créer un compte</h1>
+                <p>Rejoignez LogementCert</p>
+            </div>
+            
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="registerName">Nom complet</label>
+                    <input type="text" id="registerName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPhone">Téléphone</label>
+                    <input type="tel" id="registerPhone" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">Mot de passe</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmer le mot de passe</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">Créer le compte</button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 1rem;">
+                <p>Déjà un compte? <a href="#" onclick="showLogin()" style="color: #667eea;">Se connecter</a></p>
+            </div>
+        </div>
+
+        <!-- Page de réservation -->
+        <div id="bookingPage" class="page">
+            <button class="back-btn" onclick="showHome()">← Retour</button>
+            <div class="page-header">
+                <h1>Formulaire de Réservation</h1>
+                <p>Veuillez entrer la période de location</p>
+            </div>
+            
+            <div id="bookingError" class="error-message" style="display: none;"></div>
+            
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label>Logement sélectionné</label>
+                    <div id="selectedListing" style="padding: 1rem; background: #f3f4f6; border-radius: 8px; margin-bottom: 1rem;"></div>
+                </div>
+                
+                <div class="form-group date-fields">
+                    <div>
+                        <label for="startDate">Date d'arrivée</label>
+                        <input type="date" id="startDate" required>
+                    </div>
+                    <div>
+                        <label for="endDate">Date de départ</label>
+                        <input type="date" id="endDate" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn">Confirmer la Réservation</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Données des utilisateurs (simulation)
+        let users = [
+            { email: 'test@example.com', password: '123456', name: 'Utilisateur Test', phone: '0123456789' }
+        ];
+        
+        // Utilisateur connecté
+        let currentUser = null;
+        
+        // Données des logements
+        let listings = [
+            {
+                id: 1,
+                title: 'Appartement moderne au centre-ville',
+                price: '800DH/nuit',
+                priceValue: 80,
+                emoji: '🏢',
+                isBooked: false,
+                bookedUntil: null,
+                type: 'appartement',
+                location: 'Centre-ville',
+                maxGuests: 4
+            },
+            {
+                id: 2,
+                title: 'Villa avec piscine',
+                price: '1500DH/nuit',
+                priceValue: 150,
+                emoji: '🏖️',
+                isBooked: true,
+                bookedUntil: '2025-06-15',
+                type: 'villa',
+                location: 'Bord de mer',
+                maxGuests: 8
+            },
+            {
+                id: 3,
+                title: 'Maison de campagne',
+                price: '600DH/nuit',
+                priceValue: 60,
+                emoji: '🏡',
+                isBooked: false,
+                bookedUntil: null,
+                type: 'maison',
+                location: 'Campagne',
+                maxGuests: 6
+            },
+            {
+                id: 4,
+                title: 'Loft industriel',
+                price: '900DH/nuit',
+                priceValue: 90,
+                emoji: '🏭',
+                isBooked: true,
+                bookedUntil: '2025-07-20',
+                type: 'loft',
+                location: 'Quartier artistique',
+                maxGuests: 2
+            },
+            {
+                id: 5,
+                title: 'Studio cosy',
+                price: '450DH/nuit',
+                priceValue: 45,
+                emoji: '🏠',
+                isBooked: false,
+                bookedUntil: null,
+                type: 'appartement',
+                location: 'Centre-ville',
+                maxGuests: 2
+            },
+            {
+                id: 6,
+                title: 'Penthouse avec terrasse',
+                price: '900 DH/nuit',
+                priceValue: 900,
+                emoji: '🌆',
+                isBooked: false,
+                bookedUntil: null,
+                type: 'appartement',
+                location: 'Centre-ville',
+                maxGuests: 6
+            }
+        ];
+        
+        // Logement sélectionné pour la réservation
+        let selectedListing = null;
+        
+        // Résultats de recherche filtrés
+        let filteredListings = [...listings];
+
+        // Fonctions de navigation
+        function showHome() {
+            hideAllPages();
+            document.getElementById('homePage').classList.add('active');
+            renderListings();
+        }
+
+        function showLogin() {
+            hideAllPages();
+            document.getElementById('loginPage').classList.add('active');
+        }
+
+        function showRegister() {
+            hideAllPages();
+            document.getElementById('registerPage').classList.add('active');
+        }
+
+        function showBooking(listingId) {
+            if (!currentUser) {
+                alert('Veuillez vous connecter pour effectuer une réservation.');
+                showLogin();
+                return;
+            }
+            
+            selectedListing = listings.find(l => l.id === listingId);
+            if (!selectedListing) return;
+            
+            hideAllPages();
+            document.getElementById('bookingPage').classList.add('active');
+            
+            // Afficher les informations du logement sélectionné
+            document.getElementById('selectedListing').innerHTML = `
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="font-size: 2rem;">${selectedListing.emoji}</div>
+                    <div>
+                        <div style="font-weight: bold;">${selectedListing.title}</div>
+                        <div style="color: #667eea;">${selectedListing.price}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Définir la date minimale à aujourd'hui
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').min = today;
+            document.getElementById('endDate').min = today;
+        }
+
+        function hideAllPages() {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+        }
+
+        // Fonction pour afficher les logements
+        function renderListings(listingsToShow = filteredListings) {
+            const grid = document.getElementById('listingsGrid');
+            grid.innerHTML = '';
+            
+            if (listingsToShow.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: #6b7280;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                        <h3>Aucun logement trouvé</h3>
+                        <p>Essayez de modifier vos critères de recherche</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            listingsToShow.forEach(listing => {
+                const card = document.createElement('div');
+                card.className = 'listing-card';
+                
+                let statusText = '';
+                let statusClass = '';
+                let buttonText = '';
+                let buttonClass = '';
+                let buttonDisabled = '';
+                let buttonClick = '';
+                
+                if (listing.isBooked) {
+                    statusText = `Occupé jusqu'au ${formatDate(listing.bookedUntil)}`;
+                    statusClass = 'status-booked';
+                    buttonText = `Réserver à partir du ${formatDate(listing.bookedUntil)}`;
+                    buttonClass = 'booked';
+                    buttonDisabled = 'disabled';
+                    buttonClick = '';
+                } else {
+                    statusText = 'Disponible';
+                    statusClass = 'status-available';
+                    buttonText = 'Louer maintenant';
+                    buttonClass = 'available';
+                    buttonDisabled = '';
+                    buttonClick = `onclick="showBooking(${listing.id})"`;
+                }
+                
+                card.innerHTML = `
+                    <div class="listing-image">${listing.emoji}</div>
+                    <div class="listing-title">${listing.title}</div>
+                    <div class="listing-price">${listing.price}</div>
+                    <div style="color: #6b7280; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                        📍 ${listing.location} • 👥 ${listing.maxGuests} personnes max
+                    </div>
+                    <div class="listing-status ${statusClass}">${statusText}</div>
+                    <button class="rent-btn ${buttonClass}" ${buttonDisabled} ${buttonClick}>
+                        ${buttonText}
+                    </button>
+                `;
+                
+                grid.appendChild(card);
+            });
+            
+            // Mettre à jour le compteur de résultats
+            updateResultsCount(listingsToShow.length);
+        }
+        
+        // Fonction pour mettre à jour le compteur de résultats
+        function updateResultsCount(count) {
+            const resultsCount = document.getElementById('resultsCount');
+            if (count === listings.length) {
+                resultsCount.textContent = 'Tous les logements';
+            } else {
+                resultsCount.textContent = `${count} logement${count > 1 ? 's' : ''} trouvé${count > 1 ? 's' : ''}`;
+            }
+        }
+        
+        // Fonction de recherche et filtrage
+        function performSearch() {
+            const searchLocation = document.getElementById('searchLocation').value.toLowerCase();
+            const searchCheckin = document.getElementById('searchCheckin').value;
+            const searchCheckout = document.getElementById('searchCheckout').value;
+            const searchGuests = parseInt(document.getElementById('searchGuests').value);
+            
+            filteredListings = listings.filter(listing => {
+                // Filtrer par localisation
+                if (searchLocation && !listing.location.toLowerCase().includes(searchLocation) && 
+                    !listing.title.toLowerCase().includes(searchLocation)) {
+                    return false;
+                }
+                
+                // Filtrer par nombre de voyageurs
+                if (listing.maxGuests < searchGuests) {
+                    return false;
+                }
+                
+                // Filtrer par disponibilité (si des dates sont sélectionnées)
+                if (searchCheckin && searchCheckout) {
+                    const checkinDate = new Date(searchCheckin);
+                    const checkoutDate = new Date(searchCheckout);
+                    
+                    if (listing.isBooked) {
+                        const bookedUntil = new Date(listing.bookedUntil);
+                        if (checkinDate <= bookedUntil) {
+                            return false;
+                        }
+                    }
+                }
+                
+                return true;
+            });
+            
+            applyFilters();
+        }
+        
+        // Fonction pour appliquer les filtres
+        function applyFilters() {
+            const maxPrice = parseInt(document.getElementById('priceRange').value);
+            const availableOnly = document.getElementById('availableOnly').checked;
+            const selectedTypes = Array.from(document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked'))
+                .map(cb => cb.value);
+            
+            let filtered = filteredListings.filter(listing => {
+                // Filtrer par prix
+                if (listing.priceValue > maxPrice) {
+                    return false;
+                }
+                
+                // Filtrer par disponibilité
+                if (availableOnly && listing.isBooked) {
+                    return false;
+                }
+                
+                // Filtrer par type de logement
+                if (selectedTypes.length > 0 && !selectedTypes.includes(listing.type)) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            renderListings(filtered);
+        }
+        
+        // Fonction de tri
+        function sortListings() {
+            const sortBy = document.getElementById('sortBy').value;
+            const currentListings = [...filteredListings];
+            
+            switch (sortBy) {
+                case 'price-low':
+                    currentListings.sort((a, b) => a.priceValue - b.priceValue);
+                    break;
+                case 'price-high':
+                    currentListings.sort((a, b) => b.priceValue - a.priceValue);
+                    break;
+                case 'name':
+                    currentListings.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                default:
+                    // Tri par défaut (ordre original)
+                    break;
+            }
+            
+            renderListings(currentListings);
+        }
+        
+        // Fonction pour mettre à jour l'affichage du prix
+        function updatePriceDisplay() {
+            const priceRange = document.getElementById('priceRange');
+            const priceDisplay = document.getElementById('priceDisplay');
+            priceDisplay.textContent = `${priceRange.value}DH`;
+            applyFilters();
+        }
+
+        // Fonction pour formater les dates
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fr-FR');
+        }
+
+        // Gestion de l'authentification
+        function updateAuthUI() {
+            const authButtons = document.getElementById('authButtons');
+            const userSection = document.getElementById('userSection');
+            const welcomeUser = document.getElementById('welcomeUser');
+            
+            if (currentUser) {
+                authButtons.style.display = 'none';
+                userSection.style.display = 'flex';
+                userSection.style.alignItems = 'center';
+                userSection.style.gap = '1rem';
+                welcomeUser.textContent = `Bonjour, ${currentUser.name}`;
+            } else {
+                authButtons.style.display = 'flex';
+                userSection.style.display = 'none';
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            updateAuthUI();
+            showHome();
+        }
+
+        // Gestion des formulaires
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                updateAuthUI();
+                showHome();
+                
+                // Nettoyer le formulaire
+                document.getElementById('loginForm').reset();
+            } else {
+                alert('Email ou mot de passe incorrect.');
+            }
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const phone = document.getElementById('registerPhone').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Vérifications
+            if (password !== confirmPassword) {
+                alert('Les mots de passe ne correspondent pas.');
+                return;
+            }
+            
+            if (users.find(u => u.email === email)) {
+                alert('Un compte avec cet email existe déjà.');
+                return;
+            }
+            
+            // Créer le nouvel utilisateur
+            const newUser = { email, password, name, phone };
+            users.push(newUser);
+            currentUser = newUser;
+            
+            updateAuthUI();
+            showHome();
+            
+            // Nettoyer le formulaire
+            document.getElementById('registerForm').reset();
+            
+            alert('Compte créé avec succès!');
+        });
+
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                document.getElementById('bookingError').textContent = 'Vous devez être connecté pour effectuer une réservation.';
+                document.getElementById('bookingError').style.display = 'block';
+                return;
+            }
+            
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            // Vérifications
+            if (new Date(startDate) >= new Date(endDate)) {
+                document.getElementById('bookingError').textContent = 'La date de départ doit être après la date d\'arrivée.';
+                document.getElementById('bookingError').style.display = 'block';
+                return;
+            }
+            
+            if (new Date(startDate) < new Date()) {
+                document.getElementById('bookingError').textContent = 'La date d\'arrivée ne peut pas être dans le passé.';
+                document.getElementById('bookingError').style.display = 'block';
+                return;
+            }
+            
+            // Simuler la réservation
+            const bookingData = {
+                listingId: selectedListing.id,
+                listingTitle: selectedListing.title,
+                userName: currentUser.name,
+                userEmail: currentUser.email,
+                startDate,
+                endDate
+            };
+            
+            console.log('Données de réservation:', bookingData);
+            
+            // Marquer le logement comme réservé
+            selectedListing.isBooked = true;
+            selectedListing.bookedUntil = endDate;
+            
+            alert('Réservation confirmée! Vous recevrez un email de confirmation.');
+            
+            // Retourner à l'accueil
+            document.getElementById('bookingForm').reset();
+            document.getElementById('bookingError').style.display = 'none';
+            showHome();
+        });
+
+        // Mise à jour des dates dans le formulaire de réservation
+        document.getElementById('startDate').addEventListener('change', function() {
+            const startDate = this.value;
+            document.getElementById('endDate').min = startDate;
+        });
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAuthUI();
+            
+            // Définir les dates minimales
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('searchCheckin').min = today;
+            document.getElementById('searchCheckout').min = today;
+            
+            // Événements de recherche en temps réel
+            document.getElementById('searchLocation').addEventListener('input', performSearch);
+            document.getElementById('searchCheckin').addEventListener('change', function() {
+                document.getElementById('searchCheckout').min = this.value;
+                performSearch();
+            });
+            document.getElementById('searchCheckout').addEventListener('change', performSearch);
+            document.getElementById('searchGuests').addEventListener('change', performSearch);
+            
+            // Événements des filtres
+            document.getElementById('priceRange').addEventListener('input', updatePriceDisplay);
+            document.getElementById('availableOnly').addEventListener('change', applyFilters);
+            document.querySelectorAll('.checkbox-group input[type="checkbox"]').forEach(cb => {
+                cb.addEventListener('change', applyFilters);
+            });
+            
+            // Initialiser l'affichage
+            filteredListings = [...listings];
+            renderListings();
+        });
+    </script>
+</body>
+</html>

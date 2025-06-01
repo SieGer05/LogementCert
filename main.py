@@ -1,88 +1,88 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import Optional
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from blockchain.blockchain import LogementBlockchain
-from Crypto.key_manager import KeyManager
-from Crypto.signature import SignatureManager
+import uvicorn
+import time
 
-app = FastAPI(title="Logement Blockchain API")
-
-# Instantiate blockchain (could also be done per user/session if needed)
+app = FastAPI()
 blockchain = LogementBlockchain(consensus_type="poa")
-key_manager = KeyManager()
-sig_manager = SignatureManager()
 
-class LogementTransaction(BaseModel):
-    from_: str
-    to: str
-    logement_id: str
-    action: str  
-    property_type: Optional[str] = None
-    address: Optional[str] = None
-    price: Optional[int] = None
-    monthly_rent: Optional[int] = None
-    deposit: Optional[int] = None
-    duration_months: Optional[int] = None
-    cadastral_ref: Optional[str] = None
-    status: str
+# Allow frontend JS requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-class ValidatorKey(BaseModel):
-    public_key: str
+# Simulated login system
+@app.post("/login")
+def login(username: str = Form(...), password: str = Form(...), role: str = Form(...)):
+    if (username == "admin" and password == "admin" and role == "authority") or \
+       (username == "owner" and password == "owner" and role == "owner"):
+        return {"status": "success", "role": role}
+    raise HTTPException(status_code=401, detail="Invalid credentials")
 
-class ValidatorSignature(BaseModel):
-    private_key: str
+@app.post("/validator/add")
+async def add_validator(file: UploadFile = File(...)):
+    key_pem = (await file.read()).decode()
+    try:
+        blockchain.add_validator(key_pem)
+        return {"message": "Validator added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-@app.get("/logements")
-def list_validated_logements():
-    logements = blockchain.get_validated_logements()
-    return [item["transaction"] for item in logements]
+@app.post("/submit_property")
+async def submit_property(
+    title: str = Form(...),
+    description: str = Form(...),
+    price: float = Form(...),
+    owner: str = Form("unknown_owner")
+):
+    tx = {
+        "from": owner,
+        "to": "authority",
+        "title": title,
+        "description": description,
+        "price": price,
+        "status": "pending",
+        "timestamp": time.time()
+    }
+    blockchain.add_new_transaction(tx)
+    return {"message": "Logement submitted for validation"}
 
-@app.post("/logement")
-def create_logement(tx: LogementTransaction):
-    tx_data = tx.dict()
-    tx_data["from"] = tx_data.pop("from_")  # Fix Pydantic naming
-    blockchain.add_new_transaction(tx_data)
-    return {"message": "Transaction added to mempool", "logement_id": tx_data["logement_id"]}
+@app.get("/properties")
+def get_properties(owner: str):
+    return blockchain.get_transactions_by_address(owner)
 
-@app.post("/logement/{logement_id}/validate")
-def validate_logement(logement_id: str, sig: ValidatorSignature):
-    tx = next((t for t in blockchain.transaction_pool if t["logement_id"] == logement_id), None)
-    if not tx:
-        raise HTTPException(status_code=404, detail="Logement transaction not found")
+@app.get("/listings")
+def get_validated_logements():
+    return blockchain.get_validated_logements()
 
-    block_index = blockchain.mine(private_key_pem=sig.private_key)
-    if block_index is None:
-        raise HTTPException(status_code=403, detail="Validation failed (unauthorized validator or no transactions)")
+@app.get("/pending")
+def get_pending():
+    return [
+        tx for tx in blockchain.unconfirmed_transactions
+        if tx.get("status") == "pending"
+    ]
 
-    return {"message": f"Logement {logement_id} validated in block {block_index}"}
+@app.get("/stats")
+def get_stats():
+    return blockchain.get_chain_stats()
 
-@app.post("/logement/{logement_id}/cancel")
-def cancel_logement(logement_id: str):
-    original_len = len(blockchain.transaction_pool)
-    blockchain.transaction_pool = [tx for tx in blockchain.transaction_pool if tx["logement_id"] != logement_id]
-    if len(blockchain.transaction_pool) == original_len:
-        raise HTTPException(status_code=404, detail="Logement transaction not found or already mined")
-    return {"message": f"Transaction for logement {logement_id} cancelled"}
 
-@app.get("/logement/{logement_id}")
-def get_logement_details(logement_id: str):
-    all_txs = blockchain.get_all_transactions()
-    for item in all_txs:
-        tx = item["transaction"]
-        if tx["logement_id"] == logement_id:
-            return tx
-    raise HTTPException(status_code=404, detail="Logement not found")
+# You can add `/mine` endpoint for dev authority to approve housing
+@app.post("/mine")
+def mine(private_key: str = Form(...), title: str = Form(...)):
+    for tx in blockchain.unconfirmed_transactions:
+        if tx["title"] == title:
+            index = blockchain.mine_transaction(tx, private_key)
+            if index is not None:
+                return {"message": f"Transaction '{title}' validated in block {index}"}
+            else:
+                raise HTTPException(status_code=400, detail="Mining failed")
 
-@app.get("/logements/user/{user}")
-def get_user_logements(user: str):
-    txs = blockchain.get_transactions_by_address(user)
-    return [item["transaction"] for item in txs]
+    raise HTTPException(status_code=404, detail="Transaction not found")
 
-@app.post("/validator")
-def add_validator(key: ValidatorKey):
-    blockchain.add_validator(key.public_key.encode())
-    return {"message": "Validator public key added"}
-
-@app.get("/validators")
-def list_validators():
-    return blockchain.get_validators()
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

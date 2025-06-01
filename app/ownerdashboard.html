@@ -84,10 +84,56 @@
 
   </section>
   <script>
-    document.getElementById('propertyForm').addEventListener('submit', e => {
-      e.preventDefault();
-      alert('Logement soumis pour validation.');
+     // Déconnexion
+  function logout() {
+    alert("Déconnexion réussie.");
+    window.location.href = "Login Interfaces.html";
+  }
+
+  // Soumission du logement
+  document.getElementById('propertyForm').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    formData.append("owner", "owner"); // Replace with actual logged-in user in future
+
+    const res = await fetch("http://localhost:8000/submit_property", {
+      method: "POST",
+      body: formData
     });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      alert(result.message);
+      e.target.reset();
+      loadMyProperties(); // optional reload after submission
+    } else {
+      alert("Erreur: " + result.detail);
+    }
+  });
+
+  // Charger les logements de l'utilisateur (optionnel)
+  async function loadMyProperties() {
+    const res = await fetch("http://localhost:8000/properties?owner=owner"); // Replace "owner"
+    const data = await res.json();
+
+    const tbody = document.getElementById("ownerProperties");
+    tbody.innerHTML = "";
+
+    data.forEach(entry => {
+      const tx = entry.transaction;
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${tx.title}</td>
+        <td>${tx.status}</td>
+        <td>🧾</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  loadMyProperties(); // Initial load
   </script>
 </body>
 </html>

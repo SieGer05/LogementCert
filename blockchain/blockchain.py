@@ -112,35 +112,65 @@ class LogementBlockchain:
       self.unconfirmed_transactions.append(transaction)
       return len(self.unconfirmed_transactions) - 1
 
-   def mine(self, private_key_pem=None):
-      if not self.unconfirmed_transactions:
-         return None
+   # def mine(self, private_key_pem=None):
+   #    if not self.unconfirmed_transactions:
+   #       return None
 
-      new_block = Block(
-         index=self.last_block.index + 1,
-         transactions=self.unconfirmed_transactions.copy(),
-         timestamp=time.time(),
-         previous_hash=self.last_block.hash
-      )
+   #    new_block = Block(
+   #       index=self.last_block.index + 1,
+   #       transactions=self.unconfirmed_transactions.copy(),
+   #       timestamp=time.time(),
+   #       previous_hash=self.last_block.hash
+   #    )
 
-      if self.consensus_type == 'poa':
-         if not private_key_pem:
-               print("PoA mining requires private key for signing")
-               return None
-         try:
-               signed_block = self.consensus.sign_block(new_block, private_key_pem)
-               added = self.add_block(signed_block, signed_block.hash)  
-         except (ValueError, PermissionError) as e:
-               print(f"PoA signing failed: {e}")
-               return None
-      else:
-         proof = self.proof_of_work(new_block)
-         added = self.add_block(new_block, proof)
+   #    if self.consensus_type == 'poa':
+   #       if not private_key_pem:
+   #             print("PoA mining requires private key for signing")
+   #             return None
+   #       try:
+   #             signed_block = self.consensus.sign_block(new_block, private_key_pem)
+   #             added = self.add_block(signed_block, signed_block.hash)  
+   #       except (ValueError, PermissionError) as e:
+   #             print(f"PoA signing failed: {e}")
+   #             return None
+   #    else:
+   #       proof = self.proof_of_work(new_block)
+   #       added = self.add_block(new_block, proof)
 
-      if added:
-         self.unconfirmed_transactions.clear()
-         return new_block.index
-      return None
+   #    if added:
+   #       self.unconfirmed_transactions.clear()
+   #       return new_block.index
+   #    return None
+
+   def mine_transaction(self, tx, private_key_pem):
+    new_block = Block(
+        index=self.last_block.index + 1,
+        transactions=[tx],
+        timestamp=time.time(),
+        previous_hash=self.last_block.hash
+    )
+
+    if self.consensus_type == 'poa':
+        if not private_key_pem:
+            raise ValueError("Private key required for PoA mining")
+        signed_block = self.consensus.sign_block(new_block, private_key_pem)
+        added = self.add_block(signed_block, signed_block.hash)
+    else:
+        proof = self.proof_of_work(new_block)
+        added = self.add_block(new_block, proof)
+
+    if added:
+        # Mark the transaction as validated
+        tx["status"] = "validated"
+
+        # Remove it from the unconfirmed queue
+        self.unconfirmed_transactions = [
+            t for t in self.unconfirmed_transactions if t != tx
+        ]
+        return new_block.index
+
+    return None
+
 
    def get_validated_logements(self):
       """

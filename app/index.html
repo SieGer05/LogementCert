@@ -659,81 +659,15 @@
         let currentUser = null;
         
         // Données des logements
-        let listings = [
-            {
-                id: 1,
-                title: 'Appartement moderne au centre-ville',
-                price: '800DH/nuit',
-                priceValue: 80,
-                emoji: '🏢',
-                isBooked: false,
-                bookedUntil: null,
-                type: 'appartement',
-                location: 'Centre-ville',
-                maxGuests: 4
-            },
-            {
-                id: 2,
-                title: 'Villa avec piscine',
-                price: '1500DH/nuit',
-                priceValue: 150,
-                emoji: '🏖️',
-                isBooked: true,
-                bookedUntil: '2025-06-15',
-                type: 'villa',
-                location: 'Bord de mer',
-                maxGuests: 8
-            },
-            {
-                id: 3,
-                title: 'Maison de campagne',
-                price: '600DH/nuit',
-                priceValue: 60,
-                emoji: '🏡',
-                isBooked: false,
-                bookedUntil: null,
-                type: 'maison',
-                location: 'Campagne',
-                maxGuests: 6
-            },
-            {
-                id: 4,
-                title: 'Loft industriel',
-                price: '900DH/nuit',
-                priceValue: 90,
-                emoji: '🏭',
-                isBooked: true,
-                bookedUntil: '2025-07-20',
-                type: 'loft',
-                location: 'Quartier artistique',
-                maxGuests: 2
-            },
-            {
-                id: 5,
-                title: 'Studio cosy',
-                price: '450DH/nuit',
-                priceValue: 45,
-                emoji: '🏠',
-                isBooked: false,
-                bookedUntil: null,
-                type: 'appartement',
-                location: 'Centre-ville',
-                maxGuests: 2
-            },
-            {
-                id: 6,
-                title: 'Penthouse avec terrasse',
-                price: '900 DH/nuit',
-                priceValue: 900,
-                emoji: '🌆',
-                isBooked: false,
-                bookedUntil: null,
-                type: 'appartement',
-                location: 'Centre-ville',
-                maxGuests: 6
-            }
-        ];
-        
+        let listings = [];
+
+        async function fetchListings() {
+        const res = await fetch("http://localhost:8000/public_listings");
+        listings = await res.json();
+        filteredListings = [...listings];
+        renderListings();
+        }
+
         // Logement sélectionné pour la réservation
         let selectedListing = null;
         
@@ -1048,55 +982,60 @@
             
             alert('Compte créé avec succès!');
         });
-
-        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        // Gestion de la réservation
+        document.getElementById('bookingForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
             if (!currentUser) {
                 document.getElementById('bookingError').textContent = 'Vous devez être connecté pour effectuer une réservation.';
                 document.getElementById('bookingError').style.display = 'block';
                 return;
             }
-            
+
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
-            
-            // Vérifications
+
             if (new Date(startDate) >= new Date(endDate)) {
                 document.getElementById('bookingError').textContent = 'La date de départ doit être après la date d\'arrivée.';
                 document.getElementById('bookingError').style.display = 'block';
                 return;
             }
-            
+
             if (new Date(startDate) < new Date()) {
                 document.getElementById('bookingError').textContent = 'La date d\'arrivée ne peut pas être dans le passé.';
                 document.getElementById('bookingError').style.display = 'block';
                 return;
             }
-            
-            // Simuler la réservation
-            const bookingData = {
-                listingId: selectedListing.id,
-                listingTitle: selectedListing.title,
-                userName: currentUser.name,
-                userEmail: currentUser.email,
-                startDate,
-                endDate
-            };
-            
-            console.log('Données de réservation:', bookingData);
-            
-            // Marquer le logement comme réservé
-            selectedListing.isBooked = true;
-            selectedListing.bookedUntil = endDate;
-            
-            alert('Réservation confirmée! Vous recevrez un email de confirmation.');
-            
-            // Retourner à l'accueil
-            document.getElementById('bookingForm').reset();
-            document.getElementById('bookingError').style.display = 'none';
-            showHome();
+
+            const formData = new FormData();
+            formData.append("listing_id", selectedListing.id);
+            formData.append("user_email", currentUser.email);
+            formData.append("user_name", currentUser.name);
+            formData.append("start_date", startDate);
+            formData.append("end_date", endDate);
+
+            const res = await fetch("http://localhost:8000/book", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await res.json();
+
+            if (res.ok) {
+                selectedListing.isBooked = true;
+                selectedListing.bookedUntil = endDate;
+
+                alert('Réservation confirmée! Vous recevrez un email de confirmation.');
+
+                document.getElementById('bookingForm').reset();
+                document.getElementById('bookingError').style.display = 'none';
+                showHome();
+            } else {
+                document.getElementById('bookingError').textContent = result.detail || "Erreur lors de la réservation.";
+                document.getElementById('bookingError').style.display = 'block';
+            }
         });
+
 
         // Mise à jour des dates dans le formulaire de réservation
         document.getElementById('startDate').addEventListener('change', function() {
@@ -1106,6 +1045,7 @@
 
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
+            fetchListings();
             updateAuthUI();
             
             // Définir les dates minimales

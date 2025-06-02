@@ -1,7 +1,7 @@
 document.getElementById('loginForm').addEventListener('submit', async function(e) {
    e.preventDefault();
    const formData = new FormData(this);
-   const res = await fetch("http://localhost:8000/login", {
+   const res = await fetch("http://localhost:8000/auth/login", {
       method: "POST",
       body: formData
    });

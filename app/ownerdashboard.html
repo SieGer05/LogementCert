@@ -1,139 +1,40 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Owner Dashboard - LogementCert</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: #1f2937;
-      padding: 2rem;
-    }
-    section {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    input, textarea, button {
-      width: 100%;
-      padding: 0.75rem;
-      margin: 0.5rem 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    button {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-    th, td {
-      padding: 0.75rem;
-      border: 1px solid #ccc;
-    }
-  </style>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Owner Dashboard - LogementCert</title>
+   <link rel="stylesheet" href="css/ownerdashboard.css">
 </head>
 <body>
-  <h2 style="color:white;">Dashboard Propriétaire</h2>
-     <button onclick="logout()" style="
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: #ef4444;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-">🔓 Déconnexion</button>
-<script>
-  function logout() {
-    alert("Déconnexion réussie.");
-    window.location.href = "Login Interfaces.html"; // redirige vers la page de connexion
-  }
-</script>
-  <section>
-    <h3>Mes Logements</h3>
-    <table>
-      <thead><tr><th>Titre</th><th>Statut</th><th>QR Code</th></tr></thead>
-      <tbody id="ownerProperties">
-        <!-- Données dynamiques -->
-      </tbody>
-    </table>
-  </section>
-  <section>
-    <h3>Ajouter un nouveau logement</h3>
-    <form id="propertyForm">
-  <input type="text" name="title" placeholder="Titre du logement" required>
-  <textarea name="description" placeholder="Description" required></textarea>
-  <input type="number" name="price" placeholder="Prix par nuit (DH)" min="0" step="0.01" required>
-  <input type="file" name="photos" multiple>
-  <input type="file" name="documents" required>
-  <button type="submit">Soumettre</button>
-</form>
-
-  </section>
-  <script>
-     // Déconnexion
-  function logout() {
-    alert("Déconnexion réussie.");
-    window.location.href = "Login Interfaces.html";
-  }
-
-  // Soumission du logement
-  document.getElementById('propertyForm').addEventListener('submit', async e => {
-    e.preventDefault();
-
-    const formData = new FormData(e.target);
-    formData.append("owner", "owner"); // Replace with actual logged-in user in future
-
-    const res = await fetch("http://localhost:8000/submit_property", {
-      method: "POST",
-      body: formData
-    });
-
-    const result = await res.json();
-
-    if (res.ok) {
-      alert(result.message);
-      e.target.reset();
-      loadMyProperties(); // optional reload after submission
-    } else {
-      alert("Erreur: " + result.detail);
-    }
-  });
-
-  // Charger les logements de l'utilisateur (optionnel)
-  async function loadMyProperties() {
-    const res = await fetch("http://localhost:8000/properties?owner=owner"); // Replace "owner"
-    const data = await res.json();
-
-    const tbody = document.getElementById("ownerProperties");
-    tbody.innerHTML = "";
-
-    data.forEach(entry => {
-      const tx = entry.transaction;
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${tx.title}</td>
-        <td>${tx.status}</td>
-        <td>🧾</td>
-      `;
-      tbody.appendChild(row);
-    });
-  }
-
-  loadMyProperties(); // Initial load
-  </script>
+   <div class="container">
+      <h2>Dashboard Propriétaire</h2>
+      <button class="logout-btn" onclick="logout()">🔓 Déconnexion</button>
+      <section>
+         <h3>Mes Logements</h3>
+         <table>
+            <thead>
+               <tr>
+                  <th>Titre</th>
+                  <th>Statut</th>
+                  <th>QR Code</th>
+               </tr>
+            </thead>
+            <tbody id="ownerProperties"></tbody>
+         </table>
+      </section>
+      <section>
+         <h3>Ajouter un nouveau logement</h3>
+         <form id="propertyForm">
+            <input type="text" name="title" placeholder="Titre du logement" required>
+            <textarea name="description" placeholder="Description" required></textarea>
+            <input type="number" name="price" placeholder="Prix par nuit (DH)" min="0" step="0.01" required>
+            <input type="file" name="photos" multiple>
+            <input type="file" name="documents" required>
+            <button type="submit">Soumettre</button>
+         </form>
+      </section>
+   </div>
+   <script src="js/ownerdashboard.js"></script>
 </body>
 </html>

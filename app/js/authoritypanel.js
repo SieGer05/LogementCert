@@ -1,3 +1,5 @@
+const API_BASE_URL = "http://localhost:8000";
+
 function logout() {
    alert("Déconnexion réussie.");
    window.location.href = "login.html";
@@ -23,7 +25,7 @@ document.getElementById('verificationForm').addEventListener('submit', async e =
       `;
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("http://localhost:8000/validator/add", {
+      const res = await fetch(`${API_BASE_URL}/blockchain/validator/add`, {
          method: "POST",
          body: formData
       });
@@ -37,7 +39,7 @@ document.getElementById('verificationForm').addEventListener('submit', async e =
 });
 
 async function loadStats() {
-   const res = await fetch("http://localhost:8000/stats");
+   const res = await fetch(`${API_BASE_URL}/blockchain/stats`);
    const stats = await res.json();
    document.getElementById("blockchainStats").innerHTML = `
       <p><strong>Blocs totaux :</strong> ${stats.total_blocks}</p>
@@ -46,7 +48,7 @@ async function loadStats() {
 }
 
 async function loadPendingValidations() {
-   const res = await fetch("http://localhost:8000/pending");
+   const res = await fetch(`${API_BASE_URL}/blockchain/pending`);
    const list = await res.json();
    const container = document.getElementById("pendingValidations");
    container.innerHTML = "";
@@ -71,7 +73,7 @@ async function approveTransaction(title) {
    const formData = new FormData();
    formData.append("private_key", privateKey);
    formData.append("title", title);
-   const res = await fetch("http://localhost:8000/mine", {
+   const res = await fetch(`${API_BASE_URL}/blockchain/mine`, {
       method: "POST",
       body: formData
    });

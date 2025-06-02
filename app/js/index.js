@@ -1,3 +1,5 @@
+const API_BASE_URL = "http://localhost:8000";
+
 let users = [
    { email: 'test@example.com', password: '123456', name: 'Utilisateur Test', phone: '0123456789' }
 ];
@@ -7,7 +9,7 @@ let filteredListings = [];
 let selectedListing = null;
 
 async function fetchListings() {
-   const res = await fetch("http://localhost:8000/public_listings");
+   const res = await fetch(`${API_BASE_URL}/listings/public_listings`);
    listings = await res.json();
    filteredListings = [...listings];
    renderListings();
@@ -260,7 +262,7 @@ document.getElementById('bookingForm').addEventListener('submit', async function
    formData.append("user_name", currentUser.name);
    formData.append("start_date", startDate);
    formData.append("end_date", endDate);
-   const res = await fetch("http://localhost:8000/book", {
+   const res = await fetch(`${API_BASE_URL}/listings/book`, {
       method: "POST",
       body: formData
    });
